@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Global Risk Intelligence Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; margin:0; padding:0; }
+        body { font-family: 'Roboto', sans-serif; background:#1b1b2f; color:#fff; }
+
+        /* Container */
+        .dashboard-container { display:flex; }
+
+        /* Sidebar */
+        .sidebar { width:220px; background:#11112f; padding:20px; height:100vh; position:relative; transition: width 0.3s; overflow:hidden; }
+        .sidebar.collapsed { width:60px; }
+        .sidebar h2 { color:#00ffd5; margin-bottom:20px; font-size:1.5rem; }
+        .sidebar ul { list-style:none; padding:0; }
+        .sidebar ul li { display:flex; align-items:center; gap:10px; margin:15px 0; cursor:pointer; color:#ccc; font-weight:500; transition: all 0.3s; }
+        .sidebar ul li:hover { color:#00ffd5; }
+        .sidebar .text { transition: opacity 0.3s; }
+        .sidebar.collapsed .text { opacity:0; }
+        .sidebar.collapsed .icon { font-size:1.5rem; margin:0 auto; display:block; }
+        #toggleBtn { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); padding:5px 10px; cursor:pointer; background:#00ffd5; border:none; border-radius:5px; color:#11112f; }
+
+        /* Main Content */
+        .main-content { flex:1; padding:30px; overflow-y:auto; height:100vh; }
+        header h1 { color:#00ffd5; font-size:2rem; margin-bottom:30px; }
+
+        /* Cards */
+        .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; }
+        .card { background:#252545; padding:20px; border-radius:15px; box-shadow:0 8px 20px rgba(0,0,0,0.5); transition: transform 0.3s, box-shadow 0.3s; position:relative; }
+        .card:hover { transform:translateY(-10px); box-shadow:0 12px 25px rgba(0,255,213,0.5); }
+        .card h2 { font-size:1.5rem; color:#00ffd5; margin-bottom:10px; }
+        .card p { font-size:1rem; color:#ccc; }
+        .badge { background:#ff3d3d; color:#fff; border-radius:50%; padding:5px 10px; font-size:0.8rem; float:right; }
+
+        /* Chart */
+        .chart-section { margin-top:50px; }
+
+        /* News Section */
+        .news-section { margin-top:50px; max-height:400px; overflow-y:auto; }
+        .news-section li { background:#252545; padding:10px 15px; margin-bottom:10px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3); transition: transform 0.2s; }
+        .news-section li:hover { transform: translateY(-5px); }
+        .news-section li span.source { color:#00ffd5; font-size:0.85rem; float:right; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <h2>Menu</h2>
+            <ul>
+                <li><span class="icon">🏠</span> <span class="text">Home</span></li>
+                <li><span class="icon">📊</span> <span class="text">Analytics</span></li>
+                <li><span class="icon">📁</span> <span class="text">Reports</span></li>
+                <li><span class="icon">⚙️</span> <span class="text">Settings</span></li>
+            </ul>
+            <button id="toggleBtn">☰</button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header>
+                <h1>Global Risk Intelligence Dashboard</h1>
+            </header>
+
+            <!-- Cards -->
+            <section class="cards">
+                <div class="card">
+                    <h2>Risk Level</h2>
+                    <p>High</p>
+                </div>
+                <div class="card">
+                    <h2>Alerts <span class="badge">5</span></h2>
+                    <p>New Alerts</p>
+                </div>
+                <div class="card">
+                    <h2>Active Monitoring</h2>
+                    <p>3 Systems</p>
+                </div>
+                <div class="card">
+                    <h2>Reports</h2>
+                    <p>Generated Today</p>
+                </div>
+            </section>
+
+            <!-- Chart -->
+            <section class="chart-section">
+                <canvas id="riskChart" style="max-width:700px; margin:auto; display:block;"></canvas>
+            </section>
+
+            <!-- News -->
+            <section class="news-section">
+                <h2 style="color:#00ffd5; margin-bottom:20px;">Latest News</h2>
+                <ul id="newsList"></ul>
+            </section>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Sidebar toggle
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleBtn');
+        toggleBtn.addEventListener('click', () => { sidebar.classList.toggle('collapsed'); });
+
+        // Chart.js
+        const ctx = document.getElementById('riskChart').getContext('2d');
+        const riskChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['System A','System B','System C','System D'],
+                datasets: [{
+                    label:'Risk Score',
+                    data:[85,60,70,90],
+                    backgroundColor:'#00ffd5',
+                    borderRadius:10,
+                    borderSkipped:false
+                }]
+            },
+            options: {
+                responsive:true,
+                animation: { duration:1500, easing:'easeOutBounce' },
+                plugins:{
+                    legend:{ display:false },
+                    title:{ display:true, text:'Risk Score by System', color:'#fff', font:{ size:18 } }
+                },
+                scales:{
+                    x:{ ticks:{ color:'#fff' }, grid:{ color:'#333' } },
+                    y:{ ticks:{ color:'#fff' }, grid:{ color:'#333' }, suggestedMax:100 }
+                }
+            }
+        });
+
+        // Real-time News API
+        const newsList = document.getElementById('newsList');
+        fetch('https://gnews.io/api/v4/top-headlines?token=a85da85ef40746665a0a1586e288b87e&lang=en&max=45')
+            .then(res => res.json())
+            .then(data => {
+                const articles = data.articles;
+                // Sort by authority (simulate)
+                articles.sort((a,b)=> b.source.name.length - a.source.name.length);
+                articles.forEach(item=>{
+                    const li = document.createElement('li');
+                    li.innerHTML = `${item.title} <span class="source">${item.source.name}</span>`;
+                    newsList.appendChild(li);
+                });
+            })
+            .catch(err=>{
+                console.log('News API error, fallback to mock data', err);
+                // fallback mock data
+                for(let i=1;i<=45;i++){
+                    const li = document.createElement('li');
+                    li.innerHTML = `News Article ${i}: Important Update <span class="source">Source ${i}</span>`;
+                    newsList.appendChild(li);
+                }
+            });
+    </script>
+</body>
+</html>
